@@ -35,6 +35,74 @@ typedef struct {
     int risk_level;
 } Result;
 
+
+float intensity_table[6] = {0.0, 1.0, 3.0, 6.0, 9.0, 13.0};
+
+float posture_table[5] = {0.0, 1.0, 1.0, 1.5, 2.0};
+
+float speed_table[5] = {0.0, 1.0, 1.0, 1.5, 2.0};
+
+float get_m_intensity(int intensity) {
+    float *ptr = intensity_table;
+    if (intensity < 1 || intensity > 5) return 1.0;
+    return *(ptr + intensity);
+}
+
+float get_m_duration(float pct) {
+    if (pct < 10) return 0.5;
+    else if (pct < 30) return 1.0;
+    else if (pct < 50) return 1.5;
+    else if (pct < 80) return 2.0;
+    else return 3.0;
+}
+
+float get_m_efforts(int efforts) {
+    if (efforts < 50) return 0.5;
+    else if (efforts < 100) return 1.0;
+    else if (efforts < 150) return 1.5;
+    else if (efforts < 200) return 2.0;
+    else return 3.0;
+}
+
+float get_m_posture(PostureType posture) {
+    float *ptr = posture_table;
+    if (posture < 1 || posture > 4) return 1.0;
+    return *(ptr + posture);
+}
+
+float get_m_speed(SpeedType speed) {
+    float *ptr = speed_table;
+    if (speed < 1 || speed > 4) return 1.0;
+    return *(ptr + speed);
+}
+
+float get_m_hours(float hours) {
+    if (hours <= 1) return 0.25;
+    else if (hours <= 2) return 0.5;
+    else if (hours <= 4) return 0.75;
+    else if (hours <= 8) return 1.0;
+    else return 1.5;
+}
+
+Result hitung_strain_index(TaskData *task) {
+    Result result;
+
+    result.m_intensity = get_m_intensity(task->intensity);
+    result.m_duration  = get_m_duration(task->duration_pct);
+    result.m_efforts   = get_m_efforts(task->efforts);
+    result.m_posture   = get_m_posture(task->posture);
+    result.m_hours     = get_m_hours(task->hours);
+    result.m_speed     = get_m_speed(task->speed);
+
+    result.strain_index = result.m_intensity * result.m_duration * result.m_efforts * result.m_posture * result.m_hours * result.m_speed;
+
+    if (result.strain_index < 3.0) result.risk_level = 1;
+    else if (result.strain_index <= 7.0) result.risk_level = 2;
+    else result.risk_level = 3;
+
+    return result;
+}
+
 int main () {
     TaskData task;
     Result   result;
